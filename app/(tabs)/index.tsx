@@ -1,6 +1,7 @@
-{"codar, AlertTrianglem" "im tsedope_|"i" ce 
-;u" "Y
-a a[loi   Tt <  rolnl Ce   Pn})(  ert   sno Ts'e  be    > h" "sw  to:tSr,sn mi"oo rmnm", a  ,aoC,u":d pe{Alert as AlertTriangle } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Bell, Activity, Battery, Calendar, AlertTriangle } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { getAmmoniaLevelColor, getBatteryLevelColor, formatTime } from '@/utils/helpers';
 import { supabase } from '@/lib/supabase';
