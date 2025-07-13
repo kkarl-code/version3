@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Activity, Battery, Calendar, AlertTriangle } from 'lucide-react-native';
+import { Bell, Activity, Battery, Calendar, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { getAmmoniaLevelColor, getBatteryLevelColor, formatTime } from '@/utils/helpers';
 import { supabase } from '@/lib/supabase';
@@ -123,7 +123,6 @@ export default function DashboardScreen() {
             )
           )
         `)
-        .order('created_at', { ascending: true });
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -134,13 +133,11 @@ export default function DashboardScreen() {
         const pigpenName = (reading as any)?.sensor_nodes?.pigpens?.name || 'Unknown';
         const category = reading?.category || 'Unknown';
         const ppm = Number(reading?.value_ppm) || 0;
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-        )?.[0];
         
         return {
           alert_id: alert.alert_id,
           message: `${category} ammonia level (${ppm} ppm) in ${pigpenName}`,
-          ammonia: Number(latestReading?.value_ppm) || 0,
+          time: formatTime(alert.created_at),
           severity: category === 'Critical' ? 'critical' : 'warning'
         };
       });
@@ -254,47 +251,48 @@ export default function DashboardScreen() {
             <Text style={styles.emptyText}>No sensor data available</Text>
           ) : (
             sensorData.map((sensor) => (
-            <View key={sensor.pigpen_id} style={styles.sensorCard}>
-              <View style={styles.sensorHeader}>
-                <Text style={styles.sensorName}>{sensor.name}</Text>
-                <View style={[styles.statusBadge, { 
-                  backgroundColor: sensor.status === 'online' ? Colors.online : 
-                                  sensor.status === 'offline' ? Colors.offline : Colors.error 
-                }]}>
-                  <Text style={styles.statusBadgeText}>{sensor.status}</Text>
-                </View>
-              </View>
-              
-              <View style={styles.sensorData}>
-                <View style={styles.dataItem}>
-                  <Text style={styles.dataLabel}>Ammonia Level</Text>
-                  <View style={styles.dataValue}>
-                    <Text style={[styles.dataNumber, { color: getAmmoniaLevelColor(sensor.category) }]}>
-                      {sensor.ammonia} ppm
-                    </Text>
-                    <View style={[styles.categoryBadge, { backgroundColor: getAmmoniaLevelColor(sensor.category) }]}>
-                      <Text style={styles.categoryText}>{sensor.category}</Text>
-                    </View>
+              <View key={sensor.pigpen_id} style={styles.sensorCard}>
+                <View style={styles.sensorHeader}>
+                  <Text style={styles.sensorName}>{sensor.name}</Text>
+                  <View style={[styles.statusBadge, { 
+                    backgroundColor: sensor.status === 'online' ? Colors.online : 
+                                    sensor.status === 'offline' ? Colors.offline : Colors.error 
+                  }]}>
+                    <Text style={styles.statusBadgeText}>{sensor.status}</Text>
                   </View>
                 </View>
                 
-                <View style={styles.dataItem}>
-                  <Text style={styles.dataLabel}>Battery Level</Text>
-                  <View style={styles.batteryContainer}>
-                    <View style={styles.batteryBar}>
-                      <View style={[styles.batteryFill, { 
-                        width: `${sensor.battery}%`,
-                        backgroundColor: getBatteryLevelColor(sensor.battery)
-                      }]} />
+                <View style={styles.sensorData}>
+                  <View style={styles.dataItem}>
+                    <Text style={styles.dataLabel}>Ammonia Level</Text>
+                    <View style={styles.dataValue}>
+                      <Text style={[styles.dataNumber, { color: getAmmoniaLevelColor(sensor.category) }]}>
+                        {sensor.ammonia} ppm
+                      </Text>
+                      <View style={[styles.categoryBadge, { backgroundColor: getAmmoniaLevelColor(sensor.category) }]}>
+                        <Text style={styles.categoryText}>{sensor.category}</Text>
+                      </View>
                     </View>
-                    <Text style={[styles.batteryText, { color: getBatteryLevelColor(sensor.battery) }]}>
-                      {sensor.battery}%
-                    </Text>
+                  </View>
+                  
+                  <View style={styles.dataItem}>
+                    <Text style={styles.dataLabel}>Battery Level</Text>
+                    <View style={styles.batteryContainer}>
+                      <View style={styles.batteryBar}>
+                        <View style={[styles.batteryFill, { 
+                          width: `${sensor.battery}%`,
+                          backgroundColor: getBatteryLevelColor(sensor.battery)
+                        }]} />
+                      </View>
+                      <Text style={[styles.batteryText, { color: getBatteryLevelColor(sensor.battery) }]}>
+                        {sensor.battery}%
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
-          )))}
+            ))
+          )}
         </View>
 
         {/* Today's Schedule */}
@@ -307,22 +305,23 @@ export default function DashboardScreen() {
             <Text style={styles.emptyText}>No scheduled tasks for today</Text>
           ) : (
             schedules.map((schedule) => (
-            <View key={schedule.schedule_id} style={styles.scheduleCard}>
-              <View style={styles.scheduleTime}>
-                <Text style={styles.scheduleTimeText}>{schedule.time}</Text>
-              </View>
-              <View style={styles.scheduleContent}>
-                <Text style={styles.scheduleTitle}>{schedule.title}</Text>
-                <View style={[styles.scheduleStatus, { 
-                  backgroundColor: schedule.status === 'completed' ? Colors.safe : Colors.warning 
-                }]}>
-                  <Text style={styles.scheduleStatusText}>
-                    {schedule.status === 'completed' ? 'Completed' : 'Due'}
-                  </Text>
+              <View key={schedule.schedule_id} style={styles.scheduleCard}>
+                <View style={styles.scheduleTime}>
+                  <Text style={styles.scheduleTimeText}>{schedule.time}</Text>
+                </View>
+                <View style={styles.scheduleContent}>
+                  <Text style={styles.scheduleTitle}>{schedule.title}</Text>
+                  <View style={[styles.scheduleStatus, { 
+                    backgroundColor: schedule.status === 'completed' ? Colors.safe : Colors.warning 
+                  }]}>
+                    <Text style={styles.scheduleStatusText}>
+                      {schedule.status === 'completed' ? 'Completed' : 'Due'}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          )))}
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
